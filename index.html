@@ -10,6 +10,15 @@
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8">
+  <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3498db">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(() => console.log("Service Worker registered ✅"))
+      .catch(err => console.log("Service Worker failed: ", err));
+  }
+</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🚦 سامانه ثبت و مدیریت تصادفات</title>
   <style>
@@ -129,3 +138,4 @@
   </div>
 </body>
 </html>
+
