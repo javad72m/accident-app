@@ -1,0 +1,106 @@
+<script>
+  if (window.NativeStorage) {
+    localStorage.setItem = (k,v)=>NativeStorage.setItem(k,v);
+    localStorage.getItem = (k)=>NativeStorage.getItem(k);
+    localStorage.removeItem = (k)=>NativeStorage.removeItem(k);
+    localStorage.clear = ()=>NativeStorage.clear();
+  }
+</script>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>📋 ثبت نتیجه تصادف‌ها</title>
+  <style>
+    body {
+      background: linear-gradient(to top right, #fffaf0, #fff3cd);
+      font-family: Tahoma;
+      margin: 0;
+      padding: 30px;
+    }
+    h2 {
+      text-align: center;
+      color: #6a4c00;
+      margin-bottom: 25px;
+    }
+    .card {
+      background: white;
+      border-radius: 15px;
+      padding: 15px 20px;
+      margin: 15px auto;
+      width: 90%;
+      max-width: 800px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      cursor: pointer;
+      transition: 0.3s;
+      border-right: 5px solid #f1c40f;
+    }
+    .card:hover {
+      background: #fffbea;
+      transform: translateY(-3px);
+    }
+    .card strong {
+      font-size: 16px;
+      color: #2c3e50;
+    }
+    .info {
+      color: #555;
+      font-size: 14px;
+      margin-top: 8px;
+      line-height: 1.6;
+    }
+    .btn {
+      display: block;
+      margin: 25px auto;
+      background: #f1c40f;
+      color: #2c3e50;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.3s;
+      font-weight: bold;
+    }
+    .btn:hover { background: #e2b007; }
+  </style>
+</head>
+<body>
+
+  <h2>📋 انتخاب تصادف برای ثبت نتیجه</h2>
+  <div id="list"></div>
+  <button class="btn" onclick="window.location.href='index.html'">🏠 بازگشت به صفحه اصلی</button>
+
+  <script>
+    let crashes = JSON.parse(localStorage.getItem('final_crashes') || '[]');
+    const list = document.getElementById('list');
+
+    // 🔄 جدیدترین تصادف‌ها در بالا نمایش داده می‌شوند
+    crashes = crashes.reverse();
+
+    if (crashes.length === 0) {
+      list.innerHTML = "<p style='text-align:center;'>هیچ تصادفی ثبت نشده است.</p>";
+    }
+
+    crashes.forEach((crash, i) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <strong>🚗 تصادف ${i + 1} - ${crash.address || 'بدون آدرس'}</strong>
+        <div class="info">
+          📅 تاریخ: ${crash.date}<br>
+          ⏰ ساعت: ${crash.time}<br>
+          🧾 شماره خبر: ${crash.reportNumber || '---'}
+        </div>
+      `;
+      card.onclick = () => {
+        localStorage.setItem('selected_crash', JSON.stringify(crash));
+        localStorage.setItem('selected_index', i);
+        window.location.href = "result_detail.html";
+      };
+      list.appendChild(card);
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,278 @@
+<script>
+  if (window.NativeStorage) {
+    localStorage.setItem = (k,v)=>NativeStorage.setItem(k,v);
+    localStorage.getItem = (k)=>NativeStorage.getItem(k);
+    localStorage.removeItem = (k)=>NativeStorage.removeItem(k);
+    localStorage.clear = ()=>NativeStorage.clear();
+  }
+</script>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>مرحله چهارم - بررسی نهایی</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #eef5ff, #fefefe);
+      font-family: Tahoma, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 40px;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: #fff;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      max-width: 850px;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #2c3e50;
+    }
+
+    .section {
+      margin-bottom: 25px;
+      padding: 20px;
+      border: 1px solid #dce7f5;
+      border-radius: 12px;
+      background: #f9fcff;
+      transition: 0.3s;
+    }
+
+    .section:hover {
+      box-shadow: 0 0 10px rgba(41, 128, 185, 0.1);
+    }
+
+    .section h3 {
+      margin-top: 0;
+      color: #2980b9;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+
+    th, td {
+      border: 1px solid #cfd8dc;
+      padding: 8px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    th {
+      background: #e3f2fd;
+      color: #2c3e50;
+      font-weight: bold;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    tr:hover td {
+      background-color: #f0faff;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      border-radius: 10px;
+    }
+
+    .btn {
+      width: 200px;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      display: inline-block;
+      transition: background 0.3s ease;
+      margin: 5px;
+    }
+
+    .btn-blue {
+      background: #3498db;
+      color: white;
+    }
+
+    .btn-blue:hover {
+      background: #2c80b9;
+    }
+
+    .btn-gray {
+      background: #7f8c8d;
+      color: white;
+    }
+
+    .btn-gray:hover {
+      background: #6c7a7a;
+    }
+
+    .buttons {
+      text-align: center;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>مرحله چهارم: بررسی و تأیید اطلاعات</h2>
+
+    <div class="section">
+      <h3>📄 مشخصات اولیه تصادف</h3>
+      <p><strong>شماره خبر:</strong> <span id="reportNumber">-</span></p>
+      <p><strong>تاریخ:</strong> <span id="date">-</span></p>
+      <p><strong>ساعت:</strong> <span id="time">-</span></p>
+      <p><strong>آدرس:</strong> <span id="address">-</span></p>
+    </div>
+
+    <div class="section">
+      <h3>🚗 مشخصات خودروها</h3>
+      <div class="table-wrapper">
+        <table id="carsTable">
+          <thead>
+            <tr>
+              <th>نقش</th>
+              <th>پلاک</th>
+              <th>کد ملی راننده</th>
+              <th>تلفن راننده</th>
+              <th>سرنشین</th>
+              <th>مجروحین</th>
+              <th>توضیحات</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>🚶‍♂️ عابران پیاده</h3>
+      <div class="table-wrapper">
+        <table id="pedestriansTable">
+          <thead>
+            <tr>
+              <th>نام و نام خانوادگی</th>
+              <th>کد ملی</th>
+              <th>شماره تماس</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button class="btn btn-blue" onclick="saveAndBack()">✅ ثبت نهایی</button>
+      <button class="btn btn-gray" onclick="window.location.href='step3.html'">↩️ بازگشت</button>
+    </div>
+  </div>
+
+  <script>
+    let cars = [];
+    let pedestriansData = {};
+    let step1 = {};
+
+    function loadData() {
+      // مرحله اول
+      step1 = JSON.parse(localStorage.getItem('step1') || '{}');
+      document.getElementById('reportNumber').textContent = step1.reportNumber || "-";
+      document.getElementById('date').textContent = step1.date || "-";
+      document.getElementById('time').textContent = step1.time || "-";
+      document.getElementById('address').textContent = step1.address || "-";
+
+      // خودروها
+      cars = JSON.parse(localStorage.getItem('cars') || '[]');
+      const carsTable = document.querySelector('#carsTable tbody');
+      carsTable.innerHTML = "";
+      cars.forEach(car => {
+        const injuredList = car.injureds.map(i => `${i.name} (${i.nid})`).join("<br>") || "-";
+        carsTable.innerHTML += `
+          <tr>
+            <td>${car.role}</td>
+            <td>${car.plate}</td>
+            <td>${car.nationalId}</td>
+            <td>${car.phone}</td>
+            <td>${car.passenger}</td>
+            <td>${injuredList}</td>
+            <td>${car.description || "-"}</td>
+          </tr>`;
+      });
+
+      // عابران
+      pedestriansData = JSON.parse(localStorage.getItem('pedestrians') || '{"hasPedestrian":false,"data":[]}');
+      const pedestrians = pedestriansData.hasPedestrian ? pedestriansData.data : [];
+      const pedTable = document.querySelector('#pedestriansTable tbody');
+      pedTable.innerHTML = "";
+      if (!pedestriansData.hasPedestrian) {
+        pedTable.innerHTML = `<tr><td colspan="3">عابری وجود ندارد</td></tr>`;
+      } else if (pedestrians.length === 0) {
+        pedTable.innerHTML = `<tr><td colspan="3">اطلاعات عابر ثبت نشده است</td></tr>`;
+      } else {
+        pedestrians.forEach(p => {
+          pedTable.innerHTML += `
+            <tr>
+              <td>${p.name}</td>
+              <td>${p.id}</td>
+              <td>${p.phone}</td>
+            </tr>`;
+        });
+      }
+    }
+
+    function saveAndBack() {
+      if (cars.length === 0) {
+        alert("هیچ خودرویی ثبت نشده است!");
+        return;
+      }
+
+      if (pedestriansData.hasPedestrian && pedestriansData.data.length === 0) {
+        alert("عابر پیاده انتخاب شده ولی اطلاعاتی وارد نشده است!");
+        return;
+      }
+
+      // ذخیره تصادف در final_crashes
+      let finalCrashes = JSON.parse(localStorage.getItem('final_crashes') || '[]');
+      finalCrashes.push({
+        reportNumber: step1.reportNumber,
+        date: step1.date,
+        time: step1.time,
+        address: step1.address,
+        cars: cars,
+        pedestrian: pedestriansData,
+        result: ""
+      });
+      localStorage.setItem('final_crashes', JSON.stringify(finalCrashes));
+
+      // پاک کردن داده‌ها برای شروع جدید
+      localStorage.removeItem('step1');
+      localStorage.removeItem('cars');
+      localStorage.removeItem('pedestrians');
+
+      alert("✅ تصادف با موفقیت ثبت شد.");
+      window.location.href = "index.html";
+    }
+
+    window.onload = loadData;
+  </script>
+</body>
+</html>

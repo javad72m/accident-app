@@ -1,0 +1,180 @@
+<script>
+  if (window.NativeStorage) {
+    localStorage.setItem = (k,v)=>NativeStorage.setItem(k,v);
+    localStorage.getItem = (k)=>NativeStorage.getItem(k);
+    localStorage.removeItem = (k)=>NativeStorage.removeItem(k);
+    localStorage.clear = ()=>NativeStorage.clear();
+  }
+</script>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>📘 جزئیات تصادف</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #e8f6ff, #f7fbff);
+      font-family: Tahoma;
+      display: flex;
+      justify-content: center;
+      align-items: start;
+      padding: 40px 0;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      padding: 25px;
+      width: 90%;
+      max-width: 850px;
+      border-top: 5px solid #3498db;
+    }
+
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 25px;
+    }
+
+    .section {
+      background: #f9fdff;
+      border: 1px solid #d6ecff;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .section h3 {
+      margin-top: 0;
+      color: #2980b9;
+    }
+
+    p {
+      margin: 8px 0;
+      color: #333;
+      font-size: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+
+    th, td {
+      border: 1px solid #d6ecff;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background: #eaf6ff;
+      color: #2c3e50;
+    }
+
+    td {
+      background: #ffffff;
+    }
+
+    .btn {
+      width: 220px;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      margin: 25px auto 0;
+      font-size: 14px;
+      display: block;
+      background: #3498db;
+      color: white;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .btn:hover {
+      background: #2980b9;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>📘 جزئیات تصادف</h2>
+    <div id="details"></div>
+    <button class="btn" onclick="window.location.href='crashes.html'">↩️ بازگشت به لیست تصادفات</button>
+  </div>
+
+  <script>
+    const crash = JSON.parse(localStorage.getItem('selected_crash') || '{}');
+    const details = document.getElementById('details');
+
+    if (!crash || !crash.date) {
+      details.innerHTML = "<p style='text-align:center;'>اطلاعاتی برای نمایش وجود ندارد.</p>";
+    } else {
+      details.innerHTML = `
+        <div class="section">
+          <h3>📍 اطلاعات کلی</h3>
+          <p><strong>محل حادثه:</strong> ${crash.address || 'نامشخص'}</p>
+          <p><strong>تاریخ:</strong> ${crash.date || '-'}</p>
+          <p><strong>ساعت:</strong> ${crash.time || '-'}</p>
+          <p><strong>شماره خبر:</strong> ${crash.reportNumber || '---'}</p>
+        </div>
+
+        <div class="section">
+          <h3>🚘 مشخصات خودروها</h3>
+          <div style="overflow-x:auto;">
+            <table>
+              <tr>
+                <th>نقش</th>
+                <th>پلاک</th>
+                <th>کد ملی راننده</th>
+                <th>تلفن راننده</th>
+                <th>سرنشین</th>
+                <th>مجروحین</th>
+                <th>توضیحات</th>
+              </tr>
+              ${crash.cars?.map(c => `
+                <tr>
+                  <td>${c.role || '-'}</td>
+                  <td>${c.plate || '-'}</td>
+                  <td>${c.nationalId || '-'}</td>
+                  <td>${c.phone || '-'}</td>
+                  <td>${c.passenger || '-'}</td>
+                  <td>${(c.injureds || []).map(i => i.name || i).join('<br>') || '-'}</td>
+                  <td>${c.description || '-'}</td>
+                </tr>
+              `).join('')}
+            </table>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>🚶 عابران پیاده</h3>
+          ${
+            crash.pedestrian?.hasPedestrian
+            ? `<div style="overflow-x:auto;">
+                <table>
+                  <tr><th>نام</th><th>کد ملی</th><th>شماره تماس</th></tr>
+                  ${crash.pedestrian.data.map(p =>
+                    `<tr><td>${p.name || '-'}</td><td>${p.id || '-'}</td><td>${p.phone || '-'}</td></tr>`
+                  ).join('')}
+                </table>
+              </div>`
+            : '<p>🚫 عابری در این تصادف وجود ندارد.</p>'
+          }
+        </div>
+
+        <div class="section">
+          <h3>📊 نتیجه تصادف</h3>
+          <p>${crash.result ? crash.result : '<em>نتیجه‌ای ثبت نشده است.</em>'}</p>
+        </div>
+      `;
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,182 @@
+<script>
+  if (window.NativeStorage) {
+    localStorage.setItem = (k,v)=>NativeStorage.setItem(k,v);
+    localStorage.getItem = (k)=>NativeStorage.getItem(k);
+    localStorage.removeItem = (k)=>NativeStorage.removeItem(k);
+    localStorage.clear = ()=>NativeStorage.clear();
+  }
+</script>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🚗 مرحله اول - اطلاعات اولیه تصادف</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Tahoma', sans-serif;
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .form-container {
+      background: white;
+      padding: 35px 25px;
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 380px;
+      text-align: center;
+      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    h2 {
+      color: #1565c0;
+      margin-bottom: 25px;
+      font-size: 20px;
+      position: relative;
+    }
+
+    h2::after {
+      content: "";
+      display: block;
+      width: 70px;
+      height: 3px;
+      background: #42a5f5;
+      margin: 8px auto 0;
+      border-radius: 3px;
+    }
+
+    input {
+      width: 100%;
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 14px;
+      box-sizing: border-box;
+      transition: 0.3s;
+    }
+
+    input:focus {
+      border-color: #42a5f5;
+      box-shadow: 0 0 6px rgba(66,165,245,0.4);
+      outline: none;
+    }
+
+    input.error {
+      border-color: #e74c3c !important;
+      box-shadow: 0 0 6px rgba(231,76,60,0.5);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      margin-top: 15px;
+      font-size: 15px;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .btn-primary {
+      background: linear-gradient(to right, #1976d2, #42a5f5);
+    }
+    .btn-secondary {
+      background: linear-gradient(to right, #757575, #9e9e9e);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      opacity: 0.95;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 13px;
+      color: #666;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>🚗 مرحله اول: اطلاعات اولیه تصادف</h2>
+
+    <input type="number" id="reportNumber" placeholder="شماره خبر">
+    <input type="text" id="date" placeholder="تاریخ (مثال: 1403/07/12)">
+    <input type="time" id="time">
+    <input type="text" id="address" placeholder="آدرس تصادف">
+
+    <button class="btn btn-primary" onclick="nextStep()">مرحله بعدی ⏭️</button>
+    <button class="btn btn-secondary" onclick="window.location.href='index.html'">بازگشت ↩️</button>
+
+    <footer>مرحله ۱ از ۴</footer>
+  </div>
+
+  <script>
+    function nextStep() {
+      const fields = [
+        { id: 'reportNumber', label: 'شماره خبر' },
+        { id: 'date', label: 'تاریخ' },
+        { id: 'time', label: 'ساعت' },
+        { id: 'address', label: 'آدرس' }
+      ];
+
+      let valid = true;
+
+      // حذف خطای قبلی از همه فیلدها
+      fields.forEach(f => document.getElementById(f.id).classList.remove('error'));
+
+      // بررسی فیلدهای خالی
+      for (let f of fields) {
+        const el = document.getElementById(f.id);
+        if (!el.value.trim()) {
+          el.classList.add('error');
+          valid = false;
+        }
+      }
+
+      // اگر فیلدی خالی بود، پیام بده
+      if (!valid) {
+        alert("لطفاً تمام فیلدها را پر کنید.");
+        return;
+      }
+
+      // بررسی صحت تاریخ
+      const dateValue = document.getElementById('date').value.trim();
+      const dateRegex = /^14\d{2}\/(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])$/;
+      if (!dateRegex.test(dateValue)) {
+        document.getElementById('date').classList.add('error');
+        alert("تاریخ را به‌صورت صحیح وارد کنید. (مثال: 1403/07/12)");
+        return;
+      }
+
+      // ذخیره در localStorage
+      const reportNumber = document.getElementById('reportNumber').value.trim();
+      const time = document.getElementById('time').value.trim();
+      const address = document.getElementById('address').value.trim();
+
+      localStorage.setItem('step1', JSON.stringify({
+        reportNumber, date: dateValue, time, address
+      }));
+
+      // انتقال به مرحله بعد
+      window.location.href = 'step2.html';
+    }
+  </script>
+</body>
+</html>

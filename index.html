@@ -1,0 +1,131 @@
+<script>
+  if (window.NativeStorage) {
+    localStorage.setItem = (k,v)=>NativeStorage.setItem(k,v);
+    localStorage.getItem = (k)=>NativeStorage.getItem(k);
+    localStorage.removeItem = (k)=>NativeStorage.removeItem(k);
+    localStorage.clear = ()=>NativeStorage.clear();
+  }
+</script>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🚦 سامانه ثبت و مدیریت تصادفات</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Tahoma', sans-serif;
+      background: linear-gradient(135deg, #f6f9fc, #dceeff);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      direction: rtl;
+    }
+
+    .container {
+      background: #ffffff;
+      padding: 35px 25px;
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 100%;
+      max-width: 380px;
+      box-sizing: border-box;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 25px;
+      font-size: 24px;
+      font-weight: bold;
+      line-height: 1.5;
+      text-align: center;
+      position: relative;
+    }
+
+    h1::after {
+      content: "";
+      display: block;
+      width: 70px;
+      height: 3px;
+      background: #3498db;
+      margin: 10px auto 0;
+      border-radius: 3px;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px;
+      margin: 10px 0;
+      font-size: 16px;
+      border: none;
+      border-radius: 12px;
+      color: white;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+    }
+
+    .red { background: linear-gradient(to right, #ff5f6d, #ff7675); }
+    .orange { background: linear-gradient(to right, #f39c12, #f1c40f); }
+    .green { background: linear-gradient(to right, #27ae60, #2ecc71); }
+    .brown { background: linear-gradient(to right, #8e735b, #b39075); }
+
+    footer {
+      margin-top: 18px;
+      font-size: 13px;
+      color: #777;
+      text-align: center;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 15px;
+      }
+      .container {
+        width: 100%;
+        padding: 30px 20px;
+      }
+      .btn {
+        font-size: 15px;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚦 سامانه مدیریت تصادفات</h1>
+
+    <a href="step1.html" class="btn red">📝 ثبت تصادف جدید</a>
+    <a href="result.html" class="btn orange">📊 ثبت نتیجه تصادفات</a>
+    <a href="crashes.html" class="btn green">📋 مشاهده تصادفات ثبت‌شده</a>
+    <a href="about.html" class="btn brown">ℹ️ درباره ما</a>
+
+    <footer>© 2025 - سیستم ثبت و مدیریت تصادفات</footer>
+  </div>
+</body>
+</html>

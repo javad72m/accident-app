@@ -1,0 +1,380 @@
+<script>
+  if (window.NativeStorage) {
+    localStorage.setItem = (k,v)=>NativeStorage.setItem(k,v);
+    localStorage.getItem = (k)=>NativeStorage.getItem(k);
+    localStorage.removeItem = (k)=>NativeStorage.removeItem(k);
+    localStorage.clear = ()=>NativeStorage.clear();
+  }
+</script>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>🚘 مرحله دوم - اطلاعات خودرو</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Tahoma', sans-serif;
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 30px 10px;
+    }
+
+    .form-container {
+      background: #fff;
+      padding: 25px 20px;
+      border-radius: 20px;
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    h2 {
+      text-align: center;
+      color: #1565c0;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    h2::after {
+      content: "";
+      display: block;
+      width: 70px;
+      height: 3px;
+      background: #42a5f5;
+      margin: 8px auto 0;
+      border-radius: 3px;
+    }
+
+    input, select, textarea, .btn {
+      width: 100%;
+      padding: 11px;
+      margin-top: 10px;
+      font-size: 14px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      transition: 0.3s;
+      box-sizing: border-box;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #42a5f5;
+      box-shadow: 0 0 6px rgba(66, 165, 245, 0.4);
+      outline: none;
+    }
+
+    input.error, select.error, textarea.error {
+      border-color: #e74c3c;
+      background: #fdecea;
+    }
+
+    .small-error {
+      color: #e74c3c;
+      font-size: 13px;
+      margin-top: 6px;
+      display: none;
+    }
+
+    textarea {
+      resize: none;
+      height: 70px;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .row input {
+      flex: 1;
+    }
+
+    .btn {
+      cursor: pointer;
+      border: none;
+      color: white;
+      transition: 0.3s;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      font-weight: bold;
+    }
+
+    .btn-green { background: linear-gradient(to right, #2ecc71, #27ae60); }
+    .btn-blue { background: linear-gradient(to right, #42a5f5, #1e88e5); }
+    .btn-gray { background: linear-gradient(to right, #9e9e9e, #757575); }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      opacity: 0.95;
+    }
+
+    .injured-list, .car-list {
+      margin-top: 15px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 10px;
+      max-height: 150px;
+      overflow-y: auto;
+      font-size: 13px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .item {
+      border-bottom: 1px dashed #ccc;
+      padding: 6px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .delete-btn {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .hidden { display: none; }
+
+    footer {
+      text-align: center;
+      margin-top: 15px;
+      color: #666;
+      font-size: 13px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 480px) {
+      .form-container {
+        padding: 25px 15px;
+      }
+      input, select, textarea, .btn {
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>🚘 مرحله دوم: اطلاعات خودرو</h2>
+
+    <select id="role">
+      <option value="">نقش خودرو</option>
+      <option value="مقصر">مقصر</option>
+      <option value="غیر مقصر">غیر مقصر</option>
+    </select>
+
+    <input type="text" id="plate" placeholder="پلاک خودرو">
+
+    <div class="row">
+      <!-- کد ملی راننده (فقط عدد، حداکثر 10 رقم) -->
+      <input type="tel" id="nationalId" placeholder="کد ملی راننده" maxlength="10" inputmode="numeric" oninput="onDigitsInput(this,10)">
+      <!-- شماره تماس (فقط عدد، دقیقاً 11 رقم) -->
+      <input type="tel" id="phone" placeholder="شماره تماس (۱۱ رقم)" maxlength="11" inputmode="numeric" oninput="onDigitsInput(this,11)">
+    </div>
+    <div id="errorPhone" class="small-error">شماره تماس باید دقیقاً ۱۱ رقم عددی باشد.</div>
+
+    <input type="text" id="passenger" placeholder="مشخصات سرنشین (نام و نام خانوادگی)">
+
+    <select id="injuredSelect" onchange="toggleInjuredForm()">
+      <option value="no">آیا مجروح وجود دارد؟</option>
+      <option value="no">مجروح ندارد</option>
+      <option value="yes">مجروح دارد</option>
+    </select>
+
+    <div id="injuredForm" class="hidden">
+      <input type="text" id="injuredName" placeholder="نام و نام خانوادگی مجروح">
+      <input type="tel" id="injuredNationalId" placeholder="کد ملی مجروح" maxlength="10" inputmode="numeric" oninput="onDigitsInput(this,10)">
+      <div id="errorInjured" class="small-error">کد ملی مجروح باید ۱۰ رقم عددی باشد.</div>
+      <button type="button" class="btn btn-green" onclick="addInjured()">➕ افزودن مجروح</button>
+    </div>
+
+    <div class="injured-list" id="injuredList"></div>
+
+    <textarea id="description" placeholder="توضیحات اضافی درباره خودرو یا راننده"></textarea>
+
+    <button class="btn btn-green" onclick="addCar()">➕ افزودن خودرو</button>
+
+    <div class="car-list" id="carList"></div>
+
+    <button class="btn btn-blue" onclick="goNext()">مرحله بعدی ⏭️</button>
+    <button class="btn btn-gray" onclick="window.location.href='step1.html'">بازگشت ↩️</button>
+
+    <footer>مرحله ۲ از ۴</footer>
+  </div>
+
+  <script>
+    let cars = [];
+    let injureds = [];
+
+    /* پاک‌سازی ورودی‌ها: فقط ارقام نگه داشته بشه و طول محدود به maxLen */
+    function onDigitsInput(el, maxLen) {
+      // حذف همه غیر رقم‌ها و برش تا طول مجاز
+      el.value = el.value.replace(/\D/g, '').slice(0, maxLen);
+      // اگر phone باشه، وضعیت خطا را به‌روزرسانی کن
+      if (el.id === 'phone') {
+        const ok = /^\d{11}$/.test(el.value);
+        toggleError(el, !ok);
+        document.getElementById('errorPhone').style.display = ok ? 'none' : (el.value.length > 0 ? 'block' : 'none');
+      }
+      if (el.id === 'injuredNationalId') {
+        const ok = /^\d{10}$/.test(el.value);
+        document.getElementById('errorInjured').style.display = ok ? 'none' : (el.value.length > 0 ? 'block' : 'none');
+        toggleError(el, !ok);
+      }
+      if (el.id === 'nationalId') {
+        const ok = /^\d{10}$/.test(el.value);
+        toggleError(el, !ok);
+      }
+    }
+
+    function toggleError(el, on) {
+      if (on) el.classList.add('error'); else el.classList.remove('error');
+    }
+
+    function markError(el, condition) {
+      toggleError(el, condition);
+    }
+
+    function toggleInjuredForm() {
+      const val = document.getElementById('injuredSelect').value;
+      const injuredForm = document.getElementById('injuredForm');
+      if (val === "yes") injuredForm.classList.remove('hidden');
+      else {
+        injuredForm.classList.add('hidden');
+        injureds = [];
+        updateInjuredList();
+      }
+    }
+
+    function addInjured() {
+      const nameEl = document.getElementById('injuredName');
+      const nidEl = document.getElementById('injuredNationalId');
+
+      const name = nameEl.value.trim();
+      const nid = nidEl.value.trim();
+
+      const nidValid = /^\d{10}$/.test(nid);
+
+      markError(nameEl, !name);
+      markError(nidEl, !nidValid);
+      document.getElementById('errorInjured').style.display = nidValid ? 'none' : 'block';
+
+      if (!name || !nidValid) {
+        alert("لطفاً نام و کد ملی مجروح را صحیح وارد کنید.");
+        return;
+      }
+
+      injureds.push({ name, nid });
+      updateInjuredList();
+
+      nameEl.value = "";
+      nidEl.value = "";
+      document.getElementById('injuredForm').classList.add('hidden');
+      document.getElementById('injuredSelect').value = "no";
+    }
+
+    function updateInjuredList() {
+      const list = document.getElementById('injuredList');
+      list.innerHTML = "";
+      injureds.forEach((inj, i) => {
+        list.innerHTML += `
+          <div class="item">
+            <span>[${i + 1}] ${inj.name} - ${inj.nid}</span>
+            <button class="delete-btn" onclick="deleteInjured(${i})">حذف</button>
+          </div>`;
+      });
+    }
+
+    function deleteInjured(i) {
+      injureds.splice(i, 1);
+      updateInjuredList();
+    }
+
+    function addCar() {
+      const roleEl = document.getElementById('role');
+      const plateEl = document.getElementById('plate');
+      const nationalIdEl = document.getElementById('nationalId');
+      const phoneEl = document.getElementById('phone');
+      const passengerEl = document.getElementById('passenger');
+      const descriptionEl = document.getElementById('description');
+
+      const role = roleEl.value.trim();
+      const plate = plateEl.value.trim();
+      const nationalId = nationalIdEl.value.trim();
+      const phone = phoneEl.value.trim();
+      const passenger = passengerEl.value.trim();
+
+      const phoneValid = /^\d{11}$/.test(phone);
+      const natValid = /^\d{10}$/.test(nationalId);
+
+      markError(roleEl, !role);
+      markError(plateEl, !plate);
+      markError(nationalIdEl, !natValid);
+      markError(phoneEl, !phoneValid);
+      markError(passengerEl, !passenger);
+
+      // نمایش پیام خطای شماره تماس اگر لازم
+      document.getElementById('errorPhone').style.display = phoneValid ? 'none' : (phone.length > 0 ? 'block' : 'none');
+
+      if (!role || !plate || !natValid || !phoneValid || !passenger) {
+        alert("لطفاً تمام فیلدها را به‌صورت صحیح پر کنید.\n(شماره تماس باید دقیقاً ۱۱ رقم باشد)");
+        return;
+      }
+
+      cars.push({
+        role, plate, nationalId, phone, passenger, injureds: [...injureds],
+        description: descriptionEl.value.trim()
+      });
+      updateCarList();
+
+      // پاکسازی فرم
+      [roleEl, plateEl, nationalIdEl, phoneEl, passengerEl, descriptionEl].forEach(el => el.value = "");
+      injureds = [];
+      updateInjuredList();
+      document.getElementById('injuredSelect').value = "no";
+      toggleInjuredForm();
+      // پاک کردن خطاهای احتمالی روی فیلدها
+      [roleEl, plateEl, nationalIdEl, phoneEl, passengerEl].forEach(el => el.classList.remove('error'));
+      document.getElementById('errorPhone').style.display = 'none';
+    }
+
+    function updateCarList() {
+      const list = document.getElementById('carList');
+      list.innerHTML = "";
+      cars.forEach((car, i) => {
+        list.innerHTML += `
+          <div class="item">
+            <span>[${i + 1}] ${car.role} | پلاک: ${car.plate} | تماس: ${car.phone} | مجروحین: ${car.injureds.length}</span>
+            <button class="delete-btn" onclick="deleteCar(${i})">حذف</button>
+          </div>`;
+      });
+    }
+
+    function deleteCar(i) {
+      cars.splice(i, 1);
+      updateCarList();
+    }
+
+    function goNext() {
+      if (cars.length === 0) {
+        alert("حداقل یک خودرو باید ثبت شود.");
+        return;
+      }
+      localStorage.setItem('cars', JSON.stringify(cars));
+      window.location.href = 'step3.html';
+    }
+  </script>
+</body>
+</html>
