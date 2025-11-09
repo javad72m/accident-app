@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>🚘 مرحله دوم - اطلاعات خودرو</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body{margin:0;font-family:'Tahoma',sans-serif;background:linear-gradient(135deg,#e3f2fd,#bbdefb);display:flex;justify-content:center;align-items:flex-start;min-height:100vh;padding:30px 10px;}
+  .form-container{background:#fff;padding:25px 20px;border-radius:20px;box-shadow:0 6px 25px rgba(0,0,0,0.1);width:100%;max-width:400px;}
+  h2{text-align:center;color:#1565c0;margin-bottom:20px;}
+  input,select,textarea,.btn{width:100%;padding:10px;margin-top:10px;font-size:14px;border-radius:10px;border:1px solid #ccc;transition:0.3s;box-sizing:border-box;}
+  input:focus,select:focus,textarea:focus{border-color:#42a5f5;box-shadow:0 0 6px rgba(66,165,245,0.4);outline:none;}
+  .row{display:flex;gap:10px;}
+  .row input,.row select{flex:1;}
+  .btn{cursor:pointer;border:none;color:#fff;font-weight:bold;transition:0.3s;}
+  .btn-green{background:linear-gradient(to right,#2ecc71,#27ae60);}
+  .btn-blue{background:linear-gradient(to right,#42a5f5,#1e88e5);}
+  .btn-gray{background:linear-gradient(to right,#9e9e9e,#757575);}
+  .btn:hover{transform:translateY(-2px);opacity:0.95;}
+  .car-list,.injured-list{margin-top:15px;background:#f8f9fa;border-radius:10px;padding:10px;max-height:150px;overflow-y:auto;font-size:13px;}
+  .item{border-bottom:1px dashed #ccc;padding:6px 0;display:flex;justify-content:space-between;align-items:center;gap:5px;}
+  .btn-small{border:none;border-radius:6px;padding:3px 8px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:3px;}
+  .delete-btn{background:#e74c3c;color:#fff;}
+  .edit-btn{background:#3498db;color:#fff;}
+  footer{text-align:center;margin-top:15px;color:#666;font-size:13px;}
+  input.error, select.error, textarea.error {border-color:#e74c3c;box-shadow:0 0 6px rgba(231,76,60,0.5);}
+  @media(max-width:480px){.form-container{padding:25px 15px;}}
+</style>
+</head>
+<body>
+<div class="form-container">
+  <h2>🚘 مرحله دوم: اطلاعات خودرو</h2>
+
+  <select id="role">
+    <option value="">نقش خودرو</option>
+    <option value="مقصر">مقصر</option>
+    <option value="غیر مقصر">غیر مقصر</option>
+  </select>
+
+  <div class="row">
+    <input type="text" id="plate" placeholder="پلاک خودرو">
+    <input type="text" id="carType" placeholder="نوع خودرو">
+  </div>
+
+  <div class="row">
+    <input type="tel" id="nationalId" placeholder="کد ملی راننده" maxlength="10" inputmode="numeric">
+    <input type="tel" id="phone" placeholder="شماره تماس راننده (۱۱ رقم)" maxlength="11" inputmode="numeric">
+  </div>
+
+  <div class="row">
+    <input type="text" id="passengerName" placeholder="نام راننده">
+    <input type="text" id="passengerInfo" placeholder="مشخصات سرنشین">
+  </div>
+
+  <input type="text" id="damagedParts" placeholder="قسمت‌های آسیب‌دیده">
+
+  <select id="injuredSelect" onchange="toggleInjuredForm()">
+    <option value="">آیا مجروح وجود دارد؟</option>
+    <option value="no">مجروح ندارد</option>
+    <option value="yes">مجروح دارد</option>
+  </select>
+
+  <div id="injuredForm" style="display:none;">
+    <input type="text" id="injuredName" placeholder="نام و نام خانوادگی مجروح">
+    <input type="tel" id="injuredNationalId" placeholder="کد ملی مجروح" maxlength="10" inputmode="numeric">
+    <button class="btn btn-green" type="button" onclick="addInjured()">➕ افزودن مجروح</button>
+  </div>
+
+  <div class="injured-list" id="injuredList"></div>
+  <textarea id="description" placeholder="توضیحات اضافی"></textarea>
+
+  <button class="btn btn-green" onclick="addOrUpdateCar()">➕ افزودن خودرو</button>
+  <div class="car-list" id="carList"></div>
+
+  <button class="btn btn-blue" onclick="goNext()">مرحله بعدی ⏭️</button>
+  <button class="btn btn-gray" onclick="goBack()">بازگشت ↩️</button>
+
+  <footer>مرحله ۲ از ۴</footer>
+</div>
+
+<script src="storage.js"></script>
+<script>
+(async function() {
+  const current = await smartStorage.get('current_crash');
+  if (!current || !current.id) {
+    alert("❗ شناسه تصادف یافت نشد، لطفاً از مرحله اول شروع کنید.");
+    window.location.href = "step1.html";
+    return;
+  }
+
+  let cars = await smartStorage.get('cars_' + current.id) || [];
+  let injureds = [];
+  let editIndex = null;
+
+  const fields = {
+    role: role, plate: plate, carType: carType, nationalId: nationalId,
+    phone: phone, passengerName: passengerName, passengerInfo: passengerInfo,
+    damagedParts: damagedParts, description: description
+  };
+
+  window.toggleInjuredForm = function() {
+    injuredForm.style.display = injuredSelect.value === "yes" ? "block" : "none";
+  };
+
+  window.addInjured = async function() {
+    const name = injuredName.value.trim();
+    const nid = injuredNationalId.value.trim();
+    if (!name || !/^[0-9]{10}$/.test(nid)) {
+      alert("لطفاً اطلاعات مجروح را به درستی وارد کنید.");
+      return;
+    }
+    injureds.push({ name, nid });
+    await smartStorage.set('injureds_' + current.id, injureds);
+    updateInjuredList();
+    injuredName.value = "";
+    injuredNationalId.value = "";
+    injuredSelect.value = "no";
+    toggleInjuredForm();
+  };
+
+  function updateInjuredList() {
+    injuredList.innerHTML = "";
+    injureds.forEach((inj, i) => {
+      injuredList.innerHTML += `
+        <div class="item">
+          <span>[${i + 1}] ${inj.name} - ${inj.nid}</span>
+          <button class='delete-btn btn-small' onclick='deleteInjured(${i})'>❌ حذف</button>
+        </div>`;
+    });
+  }
+
+  window.deleteInjured = async function(i) {
+    injureds.splice(i, 1);
+    await smartStorage.set('injureds_' + current.id, injureds);
+    updateInjuredList();
+  };
+
+  window.addOrUpdateCar = async function() {
+    let valid = true;
+    Object.values(fields).forEach(el => {
+      el.classList.remove("error");
+      if (!el.value.trim()) { el.classList.add("error"); valid = false; }
+    });
+    if (!valid) return alert("⚠️ لطفاً تمام فیلدها را پر کنید.");
+
+    if (!/^[0-9]{10}$/.test(fields.nationalId.value.trim())) {
+      fields.nationalId.classList.add("error");
+      return alert("کد ملی راننده باید ۱۰ رقم باشد.");
+    }
+    if (!/^[0-9]{11}$/.test(fields.phone.value.trim())) {
+      fields.phone.classList.add("error");
+      return alert("شماره تماس باید ۱۱ رقم باشد.");
+    }
+
+    const carData = Object.fromEntries(Object.entries(fields).map(([k,v]) => [k,v.value.trim()]));
+    carData.injureds = [...injureds];
+
+    if (editIndex !== null) {
+      cars[editIndex] = carData;
+      editIndex = null;
+      alert("✅ خودرو ویرایش شد.");
+    } else {
+      cars.push(carData);
+    }
+
+    await smartStorage.set('cars_' + current.id, cars);
+    current.cars = cars;
+    await smartStorage.set('current_crash', current);
+
+    updateCarList();
+    injureds = [];
+    await smartStorage.set('injureds_' + current.id, injureds);
+    updateInjuredList();
+    Object.values(fields).forEach(el => el.value = "");
+    injuredSelect.value = "";
+  };
+
+  function updateCarList() {
+    carList.innerHTML = "";
+    cars.forEach((c, i) => {
+      carList.innerHTML += `
+        <div class='item'>
+          <span>[${i + 1}] ${c.role} | ${c.plate} | ${c.carType} | ${c.passengerName}</span>
+          <div style="display:flex;gap:4px;">
+            <button class='edit-btn btn-small' onclick='editCar(${i})'>✏️</button>
+            <button class='delete-btn btn-small' onclick='deleteCar(${i})'>🗑️</button>
+          </div>
+        </div>`;
+    });
+  }
+
+  window.editCar = function(i) {
+    const c = cars[i];
+    for (const [k, el] of Object.entries(fields)) el.value = c[k];
+    injureds = [...c.injureds];
+    updateInjuredList();
+    editIndex = i;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  window.deleteCar = async function(i) {
+    cars.splice(i, 1);
+    await smartStorage.set('cars_' + current.id, cars);
+    current.cars = cars;
+    await smartStorage.set('current_crash', current);
+    updateCarList();
+  };
+
+  window.goNext = async function() {
+    if (cars.length === 0) return alert("حداقل یک خودرو باید ثبت شود.");
+    current.cars = cars;
+    await smartStorage.set('current_crash', current);
+    await smartStorage.set('inProgress', '1');
+    window.location.href = 'step3.html';
+  };
+
+  window.goBack = async function() {
+    await smartStorage.set('cars_' + current.id, cars);
+    window.location.href = 'step1.html';
+  };
+
+  if (cars.length > 0) updateCarList();
+})();
+</script>
+</body>
+</html>

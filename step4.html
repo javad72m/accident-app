@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مرحله چهارم - بررسی نهایی</title>
+  <style>
+    body { background: linear-gradient(135deg,#eef5ff,#fefefe); font-family: Tahoma; display:flex; justify-content:center; align-items:flex-start; padding-top:40px; min-height:100vh; margin:0; }
+    .container { background:#fff; padding:25px; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.1); width:90%; max-width:900px; animation:fadeIn 0.4s ease; box-sizing:border-box; }
+    @keyframes fadeIn { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+    h2{text-align:center;margin-bottom:25px;color:#2c3e50;}
+    .section{margin-bottom:25px;padding:20px;border:1px solid #dce7f5;border-radius:12px;background:#f9fcff;}
+    .section h3{margin-top:0;color:#2980b9;font-size:16px;margin-bottom:10px;}
+    table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px;}
+    th, td{border:1px solid #cfd8dc;padding:8px;text-align:center;line-height:1.6;}
+    th{background:#e3f2fd;color:#2c3e50;font-weight:bold;}
+    tr:nth-child(even){background-color:#f9f9f9;}
+    tr:hover td{background-color:#f0faff;}
+    .table-wrapper{overflow-x:auto;border-radius:10px;}
+    .btn{width:100%; max-width:200px; padding:10px; border-radius:8px; border:none; cursor:pointer; font-size:14px; display:inline-block; transition:background 0.3s ease; margin:5px; box-sizing:border-box;}
+    .btn-blue{background:#3498db;color:white;}
+    .btn-blue:hover{background:#2c80b9;}
+    .btn-gray{background:#7f8c8d;color:white;}
+    .btn-gray:hover{background:#6c7a7a;}
+    .buttons{text-align:center;margin-top:20px;display:flex;flex-wrap:wrap;justify-content:center;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>مرحله چهارم: بررسی و تأیید اطلاعات</h2>
+
+    <div class="section">
+      <h3>📄 مشخصات اولیه تصادف</h3>
+      <p><strong>شماره خبر:</strong> <span id="reportNumber">-</span></p>
+      <p><strong>تاریخ:</strong> <span id="date">-</span></p>
+      <p><strong>ساعت:</strong> <span id="time">-</span></p>
+      <p><strong>آدرس:</strong> <span id="address">-</span></p>
+    </div>
+
+    <div class="section">
+      <h3>🚗 مشخصات خودروها</h3>
+      <div class="table-wrapper">
+        <table id="carsTable">
+          <thead>
+            <tr>
+              <th>نقش</th><th>پلاک</th><th>نوع خودرو</th><th>کد ملی راننده</th><th>نام راننده</th>
+              <th>شماره تماس</th><th>مشخصات سرنشین</th><th>قسمت‌های آسیب‌دیده</th><th>مجروحین</th><th>توضیحات</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>🚶‍♂️ عابران پیاده</h3>
+      <div class="table-wrapper">
+        <table id="pedestriansTable">
+          <thead>
+            <tr><th>نام و نام خانوادگی</th><th>کد ملی</th><th>شماره تماس</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button class="btn btn-blue" onclick="finalizeCrash()">✅ ثبت نهایی</button>
+      <button class="btn btn-gray" onclick="window.location.href='step3.html'">↩️ بازگشت</button>
+    </div>
+  </div>
+
+  <script src="storage.js"></script>
+  <script>
+    let currentCrash = null;
+    let cars = [];
+
+    async function loadData() {
+      // 📦 خواندن شناسه تصادف
+      currentCrash = await smartStorage.get('current_crash');
+      if (!currentCrash || !currentCrash.id) {
+        alert("⚠️ شناسه تصادف یافت نشد. لطفاً از مرحله اول شروع کنید.");
+        window.location.href = "step1.html";
+        return;
+      }
+
+      // 🧾 مشخصات اولیه
+      document.getElementById('reportNumber').textContent = currentCrash.reportNumber || "-";
+      document.getElementById('date').textContent = currentCrash.date || "-";
+      document.getElementById('time').textContent = currentCrash.time || "-";
+      document.getElementById('address').textContent = currentCrash.address || "-";
+
+      // 🚗 خواندن و نمایش خودروها
+      cars = await smartStorage.get('cars_' + currentCrash.id) || [];
+      const carsTable = document.querySelector('#carsTable tbody');
+      if (!cars.length) {
+        carsTable.innerHTML = `<tr><td colspan="10">🚗 اطلاعات خودرو ثبت نشده است.</td></tr>`;
+      } else {
+        carsTable.innerHTML = cars.map(car => {
+          const injureds = (car.injureds || []).map(i => `${i.name} (${i.nid})`).join("<br>") || "-";
+          return `<tr>
+            <td>${car.role || '-'}</td>
+            <td>${car.plate || '-'}</td>
+            <td>${car.carType || '-'}</td>
+            <td>${car.nationalId || '-'}</td>
+            <td>${car.passengerName || '-'}</td>
+            <td>${car.phone || '-'}</td>
+            <td>${car.passengerInfo || '-'}</td>
+            <td>${car.damagedParts || '-'}</td>
+            <td>${injureds}</td>
+            <td>${car.description || '-'}</td>
+          </tr>`;
+        }).join("");
+      }
+
+      // 🚶‍♂️ نمایش عابرها
+      const pedTable = document.querySelector('#pedestriansTable tbody');
+      const pedestrian = currentCrash.pedestrian || { hasPedestrian: false, data: [] };
+      if (!pedestrian.hasPedestrian) {
+        pedTable.innerHTML = `<tr><td colspan="3">🚶 هیچ عابری وجود ندارد</td></tr>`;
+      } else if (!pedestrian.data.length) {
+        pedTable.innerHTML = `<tr><td colspan="3">⚠️ اطلاعات عابر ثبت نشده است</td></tr>`;
+      } else {
+        pedTable.innerHTML = pedestrian.data.map(p => `
+          <tr>
+            <td>${p.name || '-'}</td>
+            <td>${p.id || '-'}</td>
+            <td>${p.phone || '-'}</td>
+          </tr>`).join("");
+      }
+    }
+
+    async function finalizeCrash() {
+      if (!currentCrash || !currentCrash.id) {
+        alert("⚠️ شناسه تصادف یافت نشد.");
+        return;
+      }
+
+      // 🧩 ترکیب همه داده‌ها
+      const finalData = {
+        ...currentCrash,
+        cars: cars,
+        pedestrian: currentCrash.pedestrian || { hasPedestrian: false, data: [] },
+        finalizedAt: new Date().toLocaleString('fa-IR')
+      };
+
+      // 📦 ذخیره در لیست نهایی
+      let allCrashes = await smartStorage.get('final_crashes') || [];
+      allCrashes.push(finalData);
+      await smartStorage.set('final_crashes', allCrashes);
+
+      // 🧹 پاکسازی داده‌های موقت
+      await smartStorage.remove('cars_' + currentCrash.id);
+      await smartStorage.remove('current_crash');
+
+      alert("✅ تصادف با موفقیت ثبت و ذخیره شد.");
+      window.location.href = "index.html";
+    }
+
+    window.addEventListener('DOMContentLoaded', loadData);
+  </script>
+</body>
+</html>

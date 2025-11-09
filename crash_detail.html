@@ -1,0 +1,163 @@
+<script>
+  if (window.NativeStorage) {
+    localStorage.setItem = (k,v)=>NativeStorage.setItem(k,v);
+    localStorage.getItem = (k)=>NativeStorage.getItem(k);
+    localStorage.removeItem = (k)=>NativeStorage.removeItem(k);
+    localStorage.clear = ()=>NativeStorage.clear();
+  }
+</script>
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📘 جزئیات تصادف</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #e8f6ff, #f7fbff);
+      font-family: Tahoma;
+      display: flex;
+      justify-content: center;
+      align-items: start;
+      padding: 40px 0;
+      margin: 0;
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      padding: 25px;
+      width: 90%;
+      max-width: 850px;
+      border-top: 5px solid #3498db;
+    }
+    h2 { text-align: center; color: #2c3e50; margin-bottom: 25px; }
+    .section {
+      background: #f9fdff;
+      border: 1px solid #d6ecff;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .section h3 { margin-top: 0; color: #2980b9; font-size: 16px; }
+    .info-item { margin: 6px 0; font-size: 14px; color: #333; }
+    .car-card, .ped-card {
+      background: #ffffff;
+      border: 1px solid #e0eefc;
+      border-right: 4px solid #3498db;
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      transition: 0.3s;
+      animation: fadeIn 0.4s ease;
+    }
+    .car-card:hover, .ped-card:hover { transform: translateY(-2px); background: #f6fbff; }
+    .car-card h4, .ped-card h4 { margin: 0 0 8px; color: #2c3e50; font-size: 14px; }
+    .detail-line { font-size: 13px; margin: 3px 0; color: #444; }
+    .detail-line strong { color: #2c3e50; }
+    .btn {
+      width: 220px;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      margin: 25px auto 0;
+      font-size: 14px;
+      display: block;
+      background: #3498db;
+      color: white;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+    .btn:hover { background: #2980b9; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>📘 جزئیات تصادف</h2>
+    <div id="details"></div>
+    <button class="btn" onclick="window.location.href='crashes.html'">↩️ بازگشت به لیست تصادفات</button>
+  </div>
+
+  <script>
+    const crash = JSON.parse(localStorage.getItem('selected_crash') || '{}');
+    const details = document.getElementById('details');
+
+    if (!crash || !crash.date) {
+      details.innerHTML = "<p style='text-align:center;'>⚠️ اطلاعاتی برای نمایش وجود ندارد.</p>";
+    } else {
+      // 🧾 اطلاعات کلی
+      let html = `
+        <div class="section">
+          <h3>📍 اطلاعات کلی</h3>
+          <div class="info-item"><strong>محل حادثه:</strong> ${crash.address || "-"}</div>
+          <div class="info-item"><strong>تاریخ:</strong> ${crash.date || "-"}</div>
+          <div class="info-item"><strong>ساعت:</strong> ${crash.time || "-"}</div>
+          <div class="info-item"><strong>شماره خبر:</strong> ${crash.reportNumber || "-"}</div>
+        </div>
+      `;
+
+      // 🚗 خودروها
+      html += `<div class="section"><h3>🚗 مشخصات خودروها</h3>`;
+      if (crash.cars?.length) {
+        crash.cars.forEach((c, i) => {
+          html += `
+            <div class="car-card">
+              <h4>🚘 خودرو ${i+1} (${c.role || '-'})</h4>
+              <div class="detail-line"><strong>پلاک:</strong> ${c.plate || '-'}</div>
+              <div class="detail-line"><strong>نوع خودرو:</strong> ${c.carType || '-'}</div>
+              <div class="detail-line"><strong>کد ملی راننده:</strong> ${c.nationalId || '-'}</div>
+              <div class="detail-line"><strong>نام راننده:</strong> ${c.passengerName || '-'}</div>
+              <div class="detail-line"><strong>شماره تماس:</strong> ${c.phone || '-'}</div>
+              <div class="detail-line"><strong>مشخصات سرنشین:</strong> ${c.passengerInfo || '-'}</div>
+              <div class="detail-line"><strong>قسمت‌های آسیب‌دیده:</strong> ${c.damagedParts || '-'}</div>
+              <div class="detail-line"><strong>مجروحین:</strong> ${(c.injureds || []).map(i => `${i.name} (${i.nid})`).join('، ') || '-'}</div>
+              <div class="detail-line"><strong>توضیحات:</strong> ${c.description || '-'}</div>
+            </div>
+          `;
+        });
+      } else {
+        html += `<p>🚗 هیچ خودرویی ثبت نشده است.</p>`;
+      }
+      html += `</div>`;
+
+      // 🚶‍♂️ عابرها
+      html += `<div class="section"><h3>🚶‍♂️ عابران پیاده</h3>`;
+      if (crash.pedestrian?.hasPedestrian && crash.pedestrian.data?.length) {
+        crash.pedestrian.data.forEach((p, i) => {
+          html += `
+            <div class="ped-card">
+              <h4>👤 عابر ${i+1}</h4>
+              <div class="detail-line"><strong>نام:</strong> ${p.name || '-'}</div>
+              <div class="detail-line"><strong>کد ملی:</strong> ${p.id || p.nid || '-'}</div>
+              <div class="detail-line"><strong>شماره تماس:</strong> ${p.phone || '-'}</div>
+            </div>
+          `;
+        });
+      } else {
+        html += `<p>🚫 عابری در این تصادف وجود ندارد.</p>`;
+      }
+      html += `</div>`;
+
+      // 📊 نتیجه
+      html += `
+        <div class="section">
+          <h3>📊 نتیجه تصادف</h3>
+          <p>${crash.result ? crash.result : '<em>نتیجه‌ای ثبت نشده است.</em>'}</p>
+        </div>
+      `;
+
+      details.innerHTML = html;
+    }
+  </script>
+
+</body>
+</html>

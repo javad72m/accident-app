@@ -1,0 +1,119 @@
+<script>
+  if (window.NativeStorage) {
+    localStorage.setItem = (k,v)=>NativeStorage.setItem(k,v);
+    localStorage.getItem = (k)=>NativeStorage.getItem(k);
+    localStorage.removeItem = (k)=>NativeStorage.removeItem(k);
+    localStorage.clear = ()=>NativeStorage.clear();
+  }
+</script>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- ✅ اضافه شد -->
+  <title>ℹ️ درباره سامانه ثبت تصادفات</title>
+  <style>
+    body {
+      font-family: Tahoma;
+      background: linear-gradient(135deg, #fffaf0, #fff3cd);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .card {
+      background-color: white;
+      padding: 35px 30px;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      text-align: center;
+      width: 90%;
+      max-width: 550px;
+      border-right: 6px solid #f1c40f;
+      animation: fadeIn 0.8s ease;
+      box-sizing: border-box; /* ✅ برای اطمینان از تطبیق درست در موبایل */
+    }
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(20px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+    h2 {
+      margin-bottom: 15px;
+      color: #6a4c00;
+      font-size: 22px;
+    }
+    p {
+      font-size: 15px;
+      line-height: 1.9;
+      color: #333;
+    }
+    .divider {
+      height: 2px;
+      width: 80%;
+      background: linear-gradient(to right, transparent, #f1c40f, transparent);
+      margin: 20px auto;
+    }
+    .creator {
+      background: #fff9e6;
+      padding: 15px;
+      border-radius: 12px;
+      margin-top: 10px;
+      box-shadow: inset 0 0 8px rgba(0,0,0,0.05);
+    }
+    .creator strong {
+      color: #d68910;
+    }
+    button {
+      margin-top: 25px;
+      padding: 10px 25px;
+      font-size: 14px;
+      background-color: #f1c40f;
+      color: #2c3e50;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+      width: 100%;        /* ✅ برای نمایش درست در موبایل */
+      max-width: 250px;   /* ✅ حفظ ظاهر دسکتاپ */
+      box-sizing: border-box;
+    }
+    button:hover {
+      background-color: #e2b007;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>ℹ️ درباره سامانه ثبت تصادفات</h2>
+    <p>
+      این سامانه با هدف تسهیل و دقت‌بخشی در ثبت و مدیریت اطلاعات تصادفات رانندگی طراحی شده است.  
+      با استفاده از این سیستم، مأموران می‌توانند اطلاعات مربوط به صحنه تصادف، خودروها و عابران را به‌صورت ساختاریافته و سریع ثبت نمایند.
+    </p>
+
+    <div class="divider"></div>
+
+    <div class="creator">
+      <p>
+        تهیه و تنظیم توسط:<br>
+        <strong>ستوان‌دوم جواد محمدی‌وند</strong><br>
+        شماره تماس: <strong>09145599951</strong>
+      </p>
+    </div>
+
+    <button onclick="goBack()">🏠 بازگشت به صفحه اصلی</button>
+  </div>
+
+  <script>
+    function goBack() {
+      window.location.href = "index.html";
+    }
+  </script>
+
+</body>
+</html>

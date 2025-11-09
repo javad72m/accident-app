@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>مرحله سوم - عابر پیاده</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { background: linear-gradient(135deg,#f8fbff,#e0f0ff); font-family:Tahoma,sans-serif; display:flex; justify-content:center; align-items:flex-start; padding-top:40px; min-height:100vh; margin:0; }
+    .form-container { background:#fff; padding:25px; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.1); width:100%; max-width:380px; box-sizing:border-box; }
+    h2 { text-align:center; color:#2c3e50; margin-bottom:25px; }
+    input, select, button { width:100%; margin-top:10px; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:14px; box-sizing:border-box; }
+    input:focus, select:focus { border-color:#3498db; box-shadow:0 0 5px rgba(52,152,219,0.4); outline:none; }
+    button { background:#2980b9; color:white; cursor:pointer; border:none; border-radius:8px; padding:10px; margin-top:15px; transition:0.3s; }
+    button:hover { opacity:0.9; }
+    .back-btn { background:#7f8c8d; }
+    .add-btn { background:#27ae60; }
+    .pedestrian-list { margin-top:15px; background:#f9f9f9; padding:10px; border-radius:10px; max-height:200px; overflow-y:auto; font-size:13px; }
+    .pedestrian-item { display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed #ccc; padding:6px 0; }
+    .delete-btn { background:#e74c3c; color:white; border:none; border-radius:6px; padding:3px 8px; cursor:pointer; font-size:12px; }
+    .delete-btn:hover { opacity:0.8; }
+    .error-box { background:#fdecea; color:#c0392b; border:1px solid #e74c3c; padding:6px 10px; border-radius:6px; margin-top:6px; font-size:12px; display:flex; align-items:center; gap:6px; animation:fadeIn 0.25s ease; }
+    .error-box::before { content:"⚠️"; font-size:14px; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(-3px);} to { opacity:1; transform:translateY(0);} }
+    .error-input { border-color:#e74c3c !important; box-shadow:0 0 5px rgba(231,76,60,0.3); }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>مرحله سوم: اطلاعات عابر پیاده 🧍</h2>
+
+    <select id="pedestrianStatus" onchange="toggleFields()">
+      <option value="">آیا عابر پیاده وجود دارد؟</option>
+      <option value="yes">دارد</option>
+      <option value="no">ندارد</option>
+    </select>
+
+    <div id="pedestrianFields" style="display:none;">
+      <input type="text" id="pedestrianName" placeholder="نام و نام خانوادگی">
+      <div id="errorName"></div>
+      <input type="text" id="pedestrianId" placeholder="کد ملی عابر" maxlength="10" inputmode="numeric" oninput="digitsOnly(this,10)">
+      <div id="errorId"></div>
+      <input type="text" id="pedestrianPhone" placeholder="شماره تماس عابر" maxlength="11" inputmode="numeric" oninput="digitsOnly(this,11)">
+      <div id="errorPhone"></div>
+      <button type="button" class="add-btn" onclick="addPedestrian()">➕ ثبت عابر</button>
+      <div class="pedestrian-list" id="pedestrianList"></div>
+    </div>
+
+    <button onclick="nextStep()">مرحله بعدی</button>
+    <button class="back-btn" onclick="window.location.href='step2.html'">بازگشت</button>
+  </div>
+
+  <script src="storage.js"></script>
+  <script>
+    let pedestrians = [];
+    let currentCrash = null;
+
+    function digitsOnly(el, maxLen) {
+      el.value = el.value.replace(/\D/g, '').slice(0, maxLen);
+    }
+
+    function toggleFields() {
+      clearErrors();
+      const status = document.getElementById('pedestrianStatus').value;
+      const fields = document.getElementById('pedestrianFields');
+      if (status === "yes") {
+        fields.style.display = "block";
+      } else {
+        fields.style.display = "none";
+        pedestrians = [];
+        updatePedestrianList();
+      }
+    }
+
+    function showError(id, msg) {
+      const c = document.getElementById(id);
+      if (c) c.innerHTML = `<div class="error-box">${msg}</div>`;
+    }
+
+    function clearErrors() {
+      document.querySelectorAll('.error-box').forEach(e => e.remove());
+      document.querySelectorAll('.error-input').forEach(e => e.classList.remove('error-input'));
+    }
+
+    function updatePedestrianList() {
+      const list = document.getElementById('pedestrianList');
+      list.innerHTML = "";
+      pedestrians.forEach((p, i) => {
+        list.innerHTML += `
+          <div class="pedestrian-item">
+            <span>[${i + 1}] ${p.name} - کدملی: ${p.id} - تلفن: ${p.phone}</span>
+            <button class="delete-btn" onclick="deletePedestrian(${i})">حذف</button>
+          </div>`;
+      });
+    }
+
+    function deletePedestrian(i) {
+      pedestrians.splice(i, 1);
+      updatePedestrianList();
+    }
+
+    async function addPedestrian() {
+      clearErrors();
+      const name = document.getElementById('pedestrianName').value.trim();
+      const id = document.getElementById('pedestrianId').value.trim();
+      const phone = document.getElementById('pedestrianPhone').value.trim();
+
+      let valid = true;
+      if (!name) {
+        showError("errorName", "نام و نام خانوادگی الزامی است.");
+        document.getElementById('pedestrianName').classList.add("error-input");
+        valid = false;
+      }
+      if (!/^\d{10}$/.test(id)) {
+        showError("errorId", "کد ملی باید دقیقاً ۱۰ رقم عددی باشد.");
+        document.getElementById('pedestrianId').classList.add("error-input");
+        valid = false;
+      }
+      if (!/^\d{11}$/.test(phone)) {
+        showError("errorPhone", "شماره تماس باید دقیقاً ۱۱ رقم عددی باشد.");
+        document.getElementById('pedestrianPhone').classList.add("error-input");
+        valid = false;
+      }
+      if (!valid) return;
+
+      pedestrians.push({ name, id, phone });
+      updatePedestrianList();
+
+      document.getElementById('pedestrianName').value = "";
+      document.getElementById('pedestrianId').value = "";
+      document.getElementById('pedestrianPhone').value = "";
+
+      if (currentCrash) {
+        currentCrash.pedestrian = { hasPedestrian: true, data: pedestrians };
+        await smartStorage.set('current_crash', currentCrash);
+        await smartStorage.set(`pedestrians_${currentCrash.id}`, pedestrians);
+      }
+    }
+
+    async function nextStep() {
+      clearErrors();
+      const status = document.getElementById('pedestrianStatus').value;
+      if (!status) {
+        showError("errorName", "لطفاً وضعیت عابر را انتخاب کنید.");
+        document.getElementById("pedestrianStatus").classList.add("error-input");
+        return;
+      }
+
+      if (status === "yes" && pedestrians.length === 0) {
+        showError("errorName", "حداقل یک عابر باید ثبت شود.");
+        return;
+      }
+
+      if (!currentCrash || !currentCrash.id) {
+        alert("❌ شناسه تصادف یافت نشد. لطفاً از مرحله اول شروع کنید.");
+        window.location.href = "step1.html";
+        return;
+      }
+
+      currentCrash.pedestrian = {
+        hasPedestrian: status === "yes",
+        data: status === "yes" ? pedestrians : []
+      };
+
+      await smartStorage.set('current_crash', currentCrash);
+      await smartStorage.set(`pedestrians_${currentCrash.id}`, currentCrash.pedestrian);
+
+      console.log("✅ عابرها ذخیره شدند:", currentCrash.pedestrian);
+
+      window.location.href = 'step4.html';
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      try {
+        currentCrash = await smartStorage.get('current_crash');
+        if (!currentCrash || !currentCrash.id) {
+          alert("⚠️ شناسه تصادف یافت نشد. لطفاً از مرحله اول شروع کنید.");
+          window.location.href = "step1.html";
+          return;
+        }
+
+        const pedData = await smartStorage.get(`pedestrians_${currentCrash.id}`);
+        if (pedData && Array.isArray(pedData)) {
+          document.getElementById('pedestrianStatus').value = "yes";
+          document.getElementById('pedestrianFields').style.display = "block";
+          pedestrians = pedData.slice();
+          updatePedestrianList();
+        } else if (currentCrash.pedestrian) {
+          const ped = currentCrash.pedestrian;
+          if (ped.hasPedestrian) {
+            document.getElementById('pedestrianStatus').value = "yes";
+            document.getElementById('pedestrianFields').style.display = "block";
+            pedestrians = Array.isArray(ped.data) ? ped.data.slice() : [];
+            updatePedestrianList();
+          } else {
+            document.getElementById('pedestrianStatus').value = "no";
+            document.getElementById('pedestrianFields').style.display = "none";
+          }
+        }
+      } catch (e) {
+        console.error("❌ خطا در بارگذاری عابرها:", e);
+      }
+    });
+  </script>
+</body>
+</html>

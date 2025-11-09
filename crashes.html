@@ -1,0 +1,336 @@
+<script>
+  if (window.NativeStorage) {
+    localStorage.setItem = (k, v) => NativeStorage.setItem(k, v);
+    localStorage.getItem = (k) => NativeStorage.getItem(k);
+    localStorage.removeItem = (k) => NativeStorage.removeItem(k);
+    localStorage.clear = () => NativeStorage.clear();
+  }
+</script>
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📋 لیست تصادفات نهایی</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #eaf6ff, #f8fbff);
+      font-family: Tahoma, sans-serif;
+      margin: 0;
+      padding: 30px;
+      color: #2c3e50;
+    }
+
+    h2 {
+      text-align: center;
+      color: #1a5276;
+      margin-bottom: 10px;
+    }
+
+    .count {
+      text-align: center;
+      color: #555;
+      margin-bottom: 25px;
+      font-size: 15px;
+    }
+
+    /* نوار جستجو */
+    .search-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 25px;
+      width: 90%;
+      max-width: 600px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 8px 12px;
+    }
+
+    .search-box input {
+      border: none;
+      outline: none;
+      flex: 1;
+      font-size: 14px;
+      padding: 6px 8px;
+      background: transparent;
+      direction: rtl;
+      color: #2c3e50;
+    }
+
+    .search-box .icon {
+      color: #3498db;
+      font-size: 18px;
+      margin-left: 6px;
+    }
+
+    .card {
+      position: relative;
+      background: #fff;
+      border-radius: 15px;
+      padding: 20px;
+      margin: 15px auto;
+      width: 90%;
+      max-width: 800px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-right: 5px solid #3498db;
+    }
+
+    .card:hover {
+      background: #f8fbff;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+    }
+
+    .delete-btn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: #ff4d4d;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 3px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .delete-btn:hover {
+      background: #d63031;
+    }
+
+    .info {
+      color: #555;
+      font-size: 14px;
+      margin-top: 8px;
+      line-height: 1.6;
+    }
+
+    .empty {
+      text-align: center;
+      font-size: 15px;
+      color: #7f8c8d;
+      margin-top: 40px;
+    }
+
+    .btn {
+      display: block;
+      margin: 25px auto;
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.3s;
+    }
+
+    .btn:hover {
+      background: #2980b9;
+    }
+
+    /* پاپ‌آپ تأیید حذف */
+    .confirm-box {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .confirm-content {
+      background: white;
+      border-radius: 15px;
+      padding: 25px 30px;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 320px;
+      animation: fadeIn 0.25s ease;
+    }
+
+    @keyframes fadeIn {
+      from {opacity: 0; transform: scale(0.95);}
+      to {opacity: 1; transform: scale(1);}
+    }
+
+    .confirm-content p {
+      font-size: 15px;
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+
+    .confirm-content button {
+      margin: 5px 10px;
+      padding: 8px 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.3s;
+    }
+
+    .yes-btn {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .yes-btn:hover {
+      background: #c0392b;
+    }
+
+    .no-btn {
+      background: #bdc3c7;
+      color: #2c3e50;
+    }
+
+    .no-btn:hover {
+      background: #95a5a6;
+    }
+
+    @media (max-width: 600px) {
+      .card {
+        padding: 15px;
+        width: 95%;
+      }
+      .search-box {
+        width: 95%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h2>📋 لیست تصادفات نهایی ثبت‌شده</h2>
+  <div class="count" id="countBox">در حال بارگذاری...</div>
+
+  <!-- نوار جستجو -->
+  <div class="search-box">
+    <span class="icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="جست‌وجو بر اساس پلاک، کد ملی، آدرس یا شماره گزارش..." />
+  </div>
+
+  <div id="list"></div>
+  <button class="btn" onclick="window.location.href='index.html'">🏠 بازگشت به صفحه اصلی</button>
+
+  <!-- پاپ‌آپ تأیید حذف -->
+  <div id="confirmBox" class="confirm-box" style="display:none;">
+    <div class="confirm-content">
+      <p>آیا مطمئن هستید می‌خواهید این تصادف را حذف کنید؟</p>
+      <button class="yes-btn" id="yesBtn">بله</button>
+      <button class="no-btn" id="noBtn">فعلاً نه</button>
+    </div>
+  </div>
+
+  <script>
+    let crashes = JSON.parse(localStorage.getItem('completed_crashes') || '[]').reverse();
+    const list = document.getElementById('list');
+    const countBox = document.getElementById('countBox');
+    const searchInput = document.getElementById('searchInput');
+    const confirmBox = document.getElementById('confirmBox');
+    const yesBtn = document.getElementById('yesBtn');
+    const noBtn = document.getElementById('noBtn');
+    let crashToDelete = null;
+
+    function updateCount() {
+      countBox.innerHTML = `🧮 تعداد تصادفات نهایی: <strong>${crashes.length}</strong>`;
+    }
+
+    function saveAndRender(newData) {
+      localStorage.setItem('completed_crashes', JSON.stringify(newData));
+      crashes = newData;
+      renderList();
+    }
+
+    function renderList(filtered = crashes) {
+      list.innerHTML = '';
+      updateCount();
+
+      if (filtered.length === 0) {
+        list.innerHTML = "<p class='empty'>📭 موردی یافت نشد.</p>";
+        return;
+      }
+
+      filtered.forEach((crash, i) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <button class="delete-btn">🗑 حذف</button>
+          <strong>🚗 تصادف شماره ${crash.id || i + 1} - ${crash.address || 'بدون آدرس'}</strong>
+          <div class="info">
+            📅 تاریخ: ${crash.date || '-'}<br>
+            ⏰ ساعت: ${crash.time || '-'}<br>
+            🧾 شماره خبر: ${crash.reportNumber || '---'}<br>
+            ✅ نتیجه: ${crash.result ? crash.result.substring(0, 70) + (crash.result.length > 70 ? "..." : "") : "ثبت نشده"}
+          </div>
+        `;
+
+        // کلیک روی کارت برای مشاهده جزئیات
+        card.querySelector('.info').onclick = () => {
+          localStorage.setItem('selected_crash', JSON.stringify(crash));
+          window.location.href = "crash_detail.html";
+        };
+
+        // کلیک روی دکمه حذف
+        const delBtn = card.querySelector('.delete-btn');
+        delBtn.onclick = (e) => {
+          e.stopPropagation();
+          crashToDelete = crash;
+          confirmBox.style.display = "flex";
+        };
+
+        list.appendChild(card);
+      });
+    }
+
+    renderList();
+
+    // تأیید حذف
+    yesBtn.onclick = () => {
+      if (crashToDelete) {
+        crashes = crashes.filter(c => c.reportNumber !== crashToDelete.reportNumber);
+        saveAndRender(crashes);
+        confirmBox.style.display = "none";
+        crashToDelete = null;
+      }
+    };
+
+    // لغو حذف
+    noBtn.onclick = () => {
+      confirmBox.style.display = "none";
+      crashToDelete = null;
+    };
+
+    // جست‌وجو
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.trim();
+      if (!query) return renderList();
+
+      const filtered = crashes.filter(crash => {
+        return (
+          (crash.address && crash.address.includes(query)) ||
+          (crash.reportNumber && crash.reportNumber.includes(query)) ||
+          (crash.result && crash.result.includes(query)) ||
+          (crash.cars?.some(c =>
+            (c.plate && c.plate.includes(query)) ||
+            (c.nationalId && c.nationalId.includes(query))
+          ))
+        );
+      });
+      renderList(filtered);
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📋 ثبت نتیجه تصادف‌ها</title>
+  <style>
+    body {
+      background: linear-gradient(to top right, #fffaf0, #fff3cd);
+      font-family: Tahoma, sans-serif;
+      margin: 0;
+      padding: 30px 10px;
+      direction: rtl;
+      color: #2c3e50;
+    }
+    h2 { text-align: center; color: #6a4c00; margin-bottom: 25px; }
+    .card {
+      background: #fff;
+      border-radius: 15px;
+      padding: 15px 20px;
+      margin: 15px auto;
+      width: 95%;
+      max-width: 850px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-right: 6px solid #f1c40f;
+    }
+    .card:hover { background: #fffbea; transform: translateY(-3px); }
+    .card strong { font-size: 16px; color: #2c3e50; }
+    .info { color: #555; font-size: 14px; margin-top: 8px; line-height: 1.6; }
+    .btn {
+      display: block;
+      margin: 25px auto;
+      background: #f1c40f;
+      color: #2c3e50;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.3s;
+      font-weight: bold;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    }
+    .btn:hover { background: #e2b007; }
+    .card:nth-child(odd) { border-right-color: #f39c12; }
+    .card:nth-child(even) { border-right-color: #f7b731; }
+    @media (max-width: 480px) {
+      body { padding: 20px; }
+      .card { font-size: 14px; padding: 12px 15px; }
+      .info { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+  <h2>📋 انتخاب تصادف برای ثبت نتیجه</h2>
+  <div id="list"></div>
+  <button class="btn" onclick="window.location.href='index.html'">🏠 بازگشت به صفحه اصلی</button>
+
+  <script src="storage.js"></script>
+  <script>
+    async function loadCrashes() {
+      try {
+        let crashes = await smartStorage.get('final_crashes') || [];
+        crashes = crashes.reverse();
+
+        const list = document.getElementById('list');
+        if (crashes.length === 0) {
+          list.innerHTML = "<p style='text-align:center; font-size:15px;'>هیچ تصادفی ثبت نشده است.</p>";
+          return;
+        }
+
+        crashes.forEach((crash, i) => {
+          const carsCount = crash.cars ? crash.cars.length : 0;
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <strong>🚗 تصادف ${crashes.length - i} - ${crash.address || 'بدون آدرس'}</strong>
+            <div class="info">
+              📅 <b>تاریخ:</b> ${crash.date || '-'}<br>
+              ⏰ <b>ساعت:</b> ${crash.time || '-'}<br>
+              🧾 <b>شماره خبر:</b> ${crash.reportNumber || '---'}<br>
+              🚙 <b>تعداد خودروها:</b> ${carsCount}
+            </div>
+          `;
+          card.onclick = async () => {
+            const realIndex = crashes.length - 1 - i;
+            await smartStorage.set('selected_index', realIndex);
+            window.location.href = "result_detail.html";
+          };
+          list.appendChild(card);
+        });
+      } catch (err) {
+        console.error("❌ خطا در بارگذاری تصادف‌ها:", err);
+        alert("خطا در بارگذاری داده‌ها. لطفاً مجدداً تلاش کنید.");
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', loadCrashes);
+  </script>
+</body>
+</html>

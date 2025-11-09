@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>🚗 مرحله اول - اطلاعات اولیه تصادف</title>
+<style>
+  body {
+    margin: 0; padding: 0;
+    font-family: 'Tahoma', sans-serif;
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh;
+  }
+  .form-container {
+    background: white; padding: 35px 25px;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    width: 90%; max-width: 380px; text-align: center;
+  }
+  h2 {
+    color: #1565c0; margin-bottom: 25px; font-size: 20px; position: relative;
+  }
+  h2::after {
+    content: ""; display: block; width: 70px; height: 3px;
+    background: #42a5f5; margin: 8px auto 0; border-radius: 3px;
+  }
+  input {
+    width: 100%; margin-top: 12px; padding: 12px;
+    border: 1px solid #ccc; border-radius: 10px; font-size: 14px;
+    transition: 0.3s; box-sizing: border-box;
+  }
+  input:focus {
+    border-color: #42a5f5;
+    box-shadow: 0 0 6px rgba(66,165,245,0.4);
+    outline: none;
+  }
+  input.error {
+    border-color: #e74c3c !important;
+    box-shadow: 0 0 6px rgba(231,76,60,0.5);
+  }
+  .btn {
+    width: 100%; padding: 12px; border: none; border-radius: 10px;
+    margin-top: 15px; font-size: 15px; color: white;
+    cursor: pointer; transition: 0.3s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+  .btn-primary { background: linear-gradient(to right, #1976d2, #42a5f5); }
+  .btn-secondary { background: linear-gradient(to right, #757575, #9e9e9e); }
+  .btn:hover { transform: translateY(-2px); opacity: 0.95; }
+  footer { text-align: center; margin-top: 15px; font-size: 13px; color: #666; }
+
+  /* ⚠️ پاپ‌آپ هشدار */
+  .warning-overlay {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999; animation: fadeIn 0.4s ease;
+  }
+  .warning-box {
+    background: rgba(255,255,255,0.95);
+    border-radius: 20px;
+    box-shadow: 0 4px 25px rgba(0,0,0,0.25);
+    width: 90%; max-width: 400px;
+    padding: 25px 20px;
+    text-align: right; direction: rtl;
+    animation: scaleIn 0.35s ease;
+  }
+  .warning-box h3 { text-align: center; color: #d35400; margin-bottom: 15px; }
+  .warning-item { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+  .checkbox {
+    width: 22px; height: 22px;
+    border-radius: 6px; border: 2px solid #999;
+    position: relative; cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .checkbox.checked { border-color: #27ae60; background: #27ae60; animation: pop 0.3s ease; }
+  .checkbox::after {
+    content: "✔"; position: absolute; top: -2px; left: 4px;
+    color: white; font-size: 18px;
+    opacity: 0; transform: scale(0); transition: all 0.3s ease;
+  }
+  .checkbox.checked::after { opacity: 1; transform: scale(1.2); }
+  label { font-size: 14px; color: #333; line-height: 1.6; cursor: pointer; }
+  .confirm-btn {
+    width: 100%; margin-top: 20px; padding: 12px; border: none;
+    border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: bold;
+    background: linear-gradient(to right, #9e9e9e, #bdbdbd); color: white;
+    transition: 0.3s; opacity: 0.8;
+  }
+  .confirm-btn.active { background: linear-gradient(to right, #27ae60, #2ecc71); opacity: 1; animation: pulse 0.4s ease; }
+  .confirm-btn:hover { transform: translateY(-2px); }
+  .error-msg { color: #c0392b; text-align: center; margin-top: 8px; display: none; font-size: 13px; }
+
+  @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+  @keyframes scaleIn { from {transform:scale(0.9);opacity:0;} to {transform:scale(1);opacity:1;} }
+  @keyframes pop { 0%{transform:scale(0.8);}60%{transform:scale(1.2);}100%{transform:scale(1);} }
+  @keyframes pulse { 0%{box-shadow:0 0 0 rgba(39,174,96,0.4);}70%{box-shadow:0 0 15px rgba(39,174,96,0.3);}100%{box-shadow:0 0 0 rgba(39,174,96,0);} }
+  @keyframes shakeAnim {0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}50%{transform:translateX(6px);}75%{transform:translateX(-4px);} }
+  .shake { animation: shakeAnim 0.3s ease; }
+</style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>🚗 مرحله اول: اطلاعات اولیه تصادف</h2>
+    <input type="number" id="reportNumber" placeholder="شماره خبر" />
+    <input type="text" id="date" placeholder="تاریخ (مثال: 1403/07/12)" />
+    <input type="time" id="time" />
+    <input type="text" id="address" placeholder="آدرس تصادف" />
+    <button class="btn btn-primary" onclick="nextStep()">مرحله بعدی ⏭️</button>
+    <button class="btn btn-secondary" onclick="goHome()">بازگشت ↩️</button>
+    <footer>مرحله ۱ از ۴</footer>
+  </div>
+
+  <!-- ⚠️ پاپ‌آپ هشدار -->
+  <div class="warning-overlay" id="warningOverlay">
+    <div class="warning-box" id="warningBox">
+      <h3>⚠️ توجه قبل از ثبت تصادف</h3>
+      <div class="warning-item"><div class="checkbox" data-id="1"></div><label>در هنگام رسیدن به صحنه تصادف مطمئن باشید که راننده‌ها عوض نشده باشند.</label></div>
+      <div class="warning-item"><div class="checkbox" data-id="2"></div><label>مطمئن باشید که راننده‌ها مست نباشند.</label></div>
+      <div class="warning-item"><div class="checkbox" data-id="3"></div><label>آثار ریختگی قطعات در محل تصادف را بازدید کنید.</label></div>
+      <div class="warning-item"><div class="checkbox" data-id="4"></div><label>آثار برخورد بر روی هر خودرو را بازدید کنید.</label></div>
+      <div class="warning-item"><div class="checkbox" data-id="5"></div><label>در صورت بیمه بدنه بودن، در تاریخ و تصادف دقت کنید تا صحنه‌سازی نباشد.</label></div>
+      <div class="error-msg" id="errorMsg">⚠️ لطفاً موارد بالا را تأیید کنید.</div>
+      <button class="confirm-btn" id="confirmBtn">✅ متوجه شدم</button>
+    </div>
+  </div>
+
+<script src="storage.js"></script>
+<script>
+(async function(){
+  const overlay = document.getElementById("warningOverlay");
+  const confirmBtn = document.getElementById("confirmBtn");
+  const errorMsg = document.getElementById("errorMsg");
+  const warningBox = document.getElementById("warningBox");
+  const boxes = document.querySelectorAll(".checkbox");
+
+  // 🟩 کنترل تیک‌های هشدار
+  function checkAll(){
+    const allChecked = Array.from(boxes).every(b => b.classList.contains("checked"));
+    confirmBtn.classList.toggle("active", allChecked);
+  }
+  boxes.forEach(b => b.addEventListener("click", ()=>{
+    b.classList.toggle("checked");
+    checkAll();
+  }));
+
+  confirmBtn.addEventListener("click",()=>{
+    const allChecked = Array.from(boxes).every(b => b.classList.contains("checked"));
+    if(!allChecked){
+      errorMsg.style.display="block";
+      warningBox.classList.remove("shake");
+      void warningBox.offsetWidth;
+      warningBox.classList.add("shake");
+      return;
+    }
+    overlay.style.animation="fadeOut 0.4s ease forwards";
+    setTimeout(()=>overlay.style.display="none",400);
+    localStorage.setItem('warning_shown','1');
+  });
+
+  // 🟢 آماده‌سازی داده‌ها
+  try {
+    const fromIndex = sessionStorage.getItem('fromIndex');
+
+    if (fromIndex === 'true') {
+      sessionStorage.removeItem('fromIndex');
+      await smartStorage.remove('current_crash');
+      const newCrash = {
+        id: 'crash_' + Date.now(),
+        reportNumber: '',
+        date: '',
+        time: '',
+        address: '',
+        cars: [],
+        pedestrian: { hasPedestrian: false, data: [] },
+        result: ''
+      };
+      await smartStorage.set('current_crash', newCrash);
+      await smartStorage.set('inProgress','1');
+      localStorage.setItem('currentCrashId', newCrash.id);
+      console.log('🆕 تصادف جدید ساخته شد:', newCrash.id);
+      if (!localStorage.getItem('warning_shown')) overlay.style.display = "flex";
+    } else {
+      const currentCrash = await smartStorage.get('current_crash');
+      if (currentCrash && currentCrash.id) {
+        const step1 = await smartStorage.get('step1') || {};
+        ['reportNumber','date','time','address'].forEach(id=>{
+          if(step1[id]) document.getElementById(id).value = step1[id];
+        });
+        overlay.style.display = "none";
+        console.log('🔄 ادامه تصادف قبلی:', currentCrash.id);
+      }
+    }
+  } catch(e){ console.error('❌ خطا در آماده‌سازی:', e); }
+
+  // 🟦 مرحله بعد
+  window.nextStep = async function(){
+    const fields = ['reportNumber','date','time','address'];
+    let valid = true;
+    fields.forEach(id=>{
+      const el = document.getElementById(id);
+      el.classList.remove('error');
+      if(!el.value.trim()){ el.classList.add('error'); valid = false; }
+    });
+    if(!valid){ alert('⚠️ لطفاً تمام فیلدها را پر کنید.'); return; }
+
+    const dateValue = document.getElementById('date').value.trim();
+    const dateRegex = /^14\d{2}\/(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])$/;
+    if(!dateRegex.test(dateValue)){
+      document.getElementById('date').classList.add('error');
+      alert('📅 لطفاً تاریخ را صحیح وارد کنید. مثال: 1403/07/12');
+      return;
+    }
+
+    const step1Data = {
+      reportNumber: document.getElementById('reportNumber').value.trim(),
+      date: dateValue,
+      time: document.getElementById('time').value.trim(),
+      address: document.getElementById('address').value.trim()
+    };
+
+    await smartStorage.set('step1', step1Data);
+    await smartStorage.set('inProgress','1');
+
+    const currentCrash = await smartStorage.get('current_crash') || {};
+    Object.assign(currentCrash, step1Data);
+    await smartStorage.set('current_crash', currentCrash);
+
+    let allCrashes = await smartStorage.get('final_crashes') || [];
+    const exists = allCrashes.find(c => c.id === currentCrash.id);
+    if(!exists){
+      allCrashes.push(currentCrash);
+      await smartStorage.set('final_crashes', allCrashes);
+    }
+
+    console.log('✅ مرحله اول ذخیره شد:', currentCrash);
+
+    // 🧹 پاک کردن فرم برای ثبت‌های بعدی
+    fields.forEach(id => document.getElementById(id).value = '');
+
+    window.location.href = 'step2.html';
+  };
+
+  // 🔙 بازگشت به خانه
+  window.goHome = async function(){
+    await smartStorage.set('inProgress','0');
+    await smartStorage.remove('current_crash');
+    window.location.href = 'index.html';
+  };
+})();
+</script>
+</body>
+</html>
